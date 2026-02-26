@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>FastAPI File Upload</title>
+</head>
+
+<body>
+    <h2>Choose File to Upload</h2>
+    <input type="file" id="fileInput" onchange="uploadFile()">
+    <div id="status"></div>
+
+    <div id="readSection" style="display: none;">
+        <hr>
+        <h2>File Content</h2>
+        <button onclick="fetchFile()">Read File</button>
+        <pre id="fileContent"></pre>
+    </div>
+
+    <script>
+        let uploadedFilename = '';
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const status = document.getElementById('status');
+            
+            if (fileInput.files.length === 0) return;
+
+            status.innerText = "Uploading...";
+            uploadedFilename = fileInput.files[0].name;
+            
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                const response = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+                status.innerText = result.message;
+                document.getElementById('readSection').style.display = 'block';
+            } catch (error) {
+                status.innerText = "Upload failed";
+            }
+        }
+
+        async function fetchFile() {
+            const response = await fetch(`/files/${uploadedFilename}`);
+
+            if (response.ok) {
+                const text = await response.text();
+                document.getElementById('fileContent').innerText = text;
+            } else {
+                alert("File not found or cannot be read.");
+            }
+        }
+    </script>
+</body>
+
+</html>
